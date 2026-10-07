@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -29,8 +30,9 @@ class EventServiceTest {
         Event result = eventService.createEvent(event);
 
         assertNotNull(result);
-        assertEquals("Test Event", result.getName());
-        assertEquals("Party", result.getEventType());
+    assertEquals("Test Event", result.getName());
+    assertEquals("Party", result.getEventType());
+    assertNotNull(result.getCreatedAt());
 
         Mockito.verify(eventRepository).save(event);
     }
@@ -45,6 +47,7 @@ class EventServiceTest {
         event.setName("Test Wedding");
         event.setDate(LocalDate.of(2026, 12, 20));
         event.setEventType("Wedding");
+        event.setCreatedAt(LocalDateTime.now());
 
         Mockito.when(eventRepository.findById(1L))
                 .thenReturn(java.util.Optional.of(event));
@@ -54,6 +57,7 @@ class EventServiceTest {
         assertNotNull(result);
         assertEquals("Test Wedding", result.getName());
         assertEquals("Wedding", result.getEventType());
+        assertNotNull(result.getCreatedAt());
 
         Mockito.verify(eventRepository).findById(1L);
     }
@@ -70,6 +74,7 @@ class EventServiceTest {
         existingEvent.setLocation("Baltimore");
         existingEvent.setDescription("Old description");
         existingEvent.setEventType("Party");
+        existingEvent.setCreatedAt(LocalDateTime.now());
 
         Event updatedDetails = new Event();
         updatedDetails.setName("Updated Event");
@@ -91,6 +96,7 @@ class EventServiceTest {
         assertEquals(LocalDate.of(2026, 12, 15), result.getDate());
         assertEquals("New York", result.getLocation());
         assertEquals("Wedding", result.getEventType());
+        assertNotNull(result.getCreatedAt());
 
         Mockito.verify(eventRepository).findById(1L);
         Mockito.verify(eventRepository).save(existingEvent);
