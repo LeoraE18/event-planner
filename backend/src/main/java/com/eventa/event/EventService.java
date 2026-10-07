@@ -18,7 +18,8 @@ public class EventService {
     }
 
     public Event getEventById(Long id) {
-        return eventRepository.findById(id).orElse(null);
+        return eventRepository.findById(id)
+                .orElseThrow(() -> new EventNotFoundException("Event not found"));
     }
 
     public Event createEvent(Event event) {

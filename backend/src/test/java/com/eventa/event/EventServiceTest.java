@@ -94,7 +94,7 @@ class EventServiceTest {
     }
 
     @Test
-    void getEventByIdShouldReturnNullWhenEventDoesNotExist() {
+    void getEventByIdShouldThrowExceptionWhenEventDoesNotExist() {
 
         EventRepository eventRepository = Mockito.mock(EventRepository.class);
         EventService eventService = new EventService(eventRepository);
@@ -102,9 +102,12 @@ class EventServiceTest {
         Mockito.when(eventRepository.findById(999L))
                 .thenReturn(java.util.Optional.empty());
 
-        Event result = eventService.getEventById(999L);
+        RuntimeException exception = org.junit.jupiter.api.Assertions.assertThrows(
+                RuntimeException.class,
+                () -> eventService.getEventById(999L)
+        );
 
-        assertEquals(null, result);
+        assertEquals("Event not found", exception.getMessage());
 
         Mockito.verify(eventRepository).findById(999L);
     }
