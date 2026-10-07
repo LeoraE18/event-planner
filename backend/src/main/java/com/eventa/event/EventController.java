@@ -1,65 +1,50 @@
 package com.eventa.event;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/events")
 public class EventController {
 
-    private final EventRepository eventRepository;
+    private final EventService eventService;
 
-    public EventController(EventRepository eventRepository) {
-        this.eventRepository = eventRepository;
+    public EventController(EventService eventService) {
+        this.eventService = eventService;
     }
 
     // Get all events
     @GetMapping
     public List<Event> getAllEvents() {
-        return eventRepository.findAll();
+        return eventService.getAllEvents();
     }
 
     // Get one event by ID
     @GetMapping("/{id}")
     public Event getEventById(@PathVariable Long id) {
-        return eventRepository.findById(id).orElse(null);
+        return eventService.getEventById(id);
     }
 
     // Create an event
     @PostMapping
     public Event createEvent(@Valid @RequestBody Event event) {
-        return eventRepository.save(event);
+        return eventService.createEvent(event);
     }
 
     // Update an event
     @PutMapping("/{id}")
-    public Event updateEvent(@PathVariable Long id, @Valid @RequestBody Event eventDetails) {        Event event = eventRepository.findById(id).orElse(null);
+    public Event updateEvent(
+            @PathVariable Long id,
+            @Valid @RequestBody Event eventDetails) {
 
-        if (event == null) {
-            return null;
-        }
-
-        event.setName(eventDetails.getName());
-        event.setDate(eventDetails.getDate());
-        event.setLocation(eventDetails.getLocation());
-        event.setDescription(eventDetails.getDescription());
-        event.setEventType(eventDetails.getEventType());
-
-        return eventRepository.save(event);
+        return eventService.updateEvent(id, eventDetails);
     }
 
     // Delete an event
     @DeleteMapping("/{id}")
     public String deleteEvent(@PathVariable Long id) {
-        Event event = eventRepository.findById(id).orElse(null);
-
-        if (event == null) {
-            return "Event not found";
-        }
-
-        eventRepository.delete(event);
-        return "Event deleted successfully";
+        return eventService.deleteEvent(id);
     }
 }
