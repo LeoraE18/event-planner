@@ -3,6 +3,7 @@ package com.eventa.event;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Service
 public class EventService {
@@ -23,6 +24,7 @@ public class EventService {
     }
 
     public Event createEvent(Event event) {
+        event.setCreatedAt(LocalDateTime.now());
         return eventRepository.save(event);
     }
 
