@@ -3,8 +3,11 @@ package com.eventa.event;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.time.LocalDate;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class EventServiceTest {
 
@@ -16,7 +19,7 @@ class EventServiceTest {
 
         Event event = new Event();
         event.setName("Test Event");
-        event.setDate("2026-12-01");
+        event.setDate(LocalDate.of(2026, 12, 1));
         event.setLocation("Baltimore");
         event.setDescription("A test event");
         event.setEventType("Party");
@@ -40,7 +43,7 @@ class EventServiceTest {
 
         Event event = new Event();
         event.setName("Test Wedding");
-        event.setDate("2026-12-20");
+        event.setDate(LocalDate.of(2026, 12, 20));
         event.setEventType("Wedding");
 
         Mockito.when(eventRepository.findById(1L))
@@ -63,14 +66,14 @@ class EventServiceTest {
 
         Event existingEvent = new Event();
         existingEvent.setName("Old Event");
-        existingEvent.setDate("2026-12-01");
+        existingEvent.setDate(LocalDate.of(2026, 12, 1));
         existingEvent.setLocation("Baltimore");
         existingEvent.setDescription("Old description");
         existingEvent.setEventType("Party");
 
         Event updatedDetails = new Event();
         updatedDetails.setName("Updated Event");
-        updatedDetails.setDate("2026-12-15");
+        updatedDetails.setDate(LocalDate.of(2026, 12, 15));
         updatedDetails.setLocation("New York");
         updatedDetails.setDescription("Updated description");
         updatedDetails.setEventType("Wedding");
@@ -85,7 +88,7 @@ class EventServiceTest {
 
         assertNotNull(result);
         assertEquals("Updated Event", result.getName());
-        assertEquals("2026-12-15", result.getDate());
+        assertEquals(LocalDate.of(2026, 12, 15), result.getDate());
         assertEquals("New York", result.getLocation());
         assertEquals("Wedding", result.getEventType());
 
@@ -102,8 +105,8 @@ class EventServiceTest {
         Mockito.when(eventRepository.findById(999L))
                 .thenReturn(java.util.Optional.empty());
 
-        RuntimeException exception = org.junit.jupiter.api.Assertions.assertThrows(
-                RuntimeException.class,
+        EventNotFoundException exception = assertThrows(
+                EventNotFoundException.class,
                 () -> eventService.getEventById(999L)
         );
 

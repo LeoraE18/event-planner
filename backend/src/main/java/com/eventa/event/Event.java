@@ -5,6 +5,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
+import java.time.LocalDate;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 public class Event {
@@ -15,8 +17,8 @@ public class Event {
 
     @NotBlank
     private String name;
-    @NotBlank
-    private String date;
+    @NotNull
+    private LocalDate date;
     private String location;
     private String description;
     @NotBlank
@@ -37,11 +39,11 @@ public class Event {
         this.name = name;
     }
 
-    public String getDate() {
+    public LocalDate getDate() {
         return date;
     }
 
-    public void setDate(String date) {
+    public void setDate(LocalDate date) {
         this.date = date;
     }
 
