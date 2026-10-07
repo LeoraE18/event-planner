@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDate;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.FutureOrPresent;
 
 @Entity
 public class Event {
@@ -18,6 +19,7 @@ public class Event {
     @NotBlank
     private String name;
     @NotNull
+    @FutureOrPresent
     private LocalDate date;
     private String location;
     private String description;
