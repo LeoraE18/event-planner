@@ -3,6 +3,7 @@ package com.eventa.event;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
 
 @Entity
 public class Guest {
@@ -18,6 +19,7 @@ public class Guest {
     private String rsvpStatus;
 
     @NotNull
+    @Min(value = 1, message = "Party size must be at least 1")
     private Integer partySize;
 
     private String notes;
