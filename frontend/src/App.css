@@ -1155,3 +1155,15 @@ h3 {
 .task-row {
   flex-wrap: wrap;
 }
+
+
+.edit-task-form {
+  margin: 16px 0;
+}
+
+.edit-task-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}

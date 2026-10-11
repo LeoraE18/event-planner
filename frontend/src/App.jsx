@@ -42,7 +42,12 @@ function App() {
   const [taskDueDate, setTaskDueDate] = useState("");
   const [taskError, setTaskError] = useState("");
   const [taskSaving, setTaskSaving] = useState(false);
-
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editTaskTitle, setEditTaskTitle] = useState("");
+  const [editTaskDescription, setEditTaskDescription] = useState("");
+  const [editTaskDueDate, setEditTaskDueDate] = useState("");
+  const [editTaskError, setEditTaskError] = useState("");
+  const [editTaskSaving, setEditTaskSaving] = useState(false);
   const [guests, setGuests] = useState([]);
   const [guestName, setGuestName] = useState("");
   const [guestRsvpStatus, setGuestRsvpStatus] = useState("Pending");
@@ -532,6 +537,63 @@ async function handleDeleteTask(taskId) {
     setTaskError(
       "Couldn't delete the task. Check that the backend is running and try again."
     );
+  }
+}
+
+
+
+async function handleEditTaskSubmit(formEvent, taskId) {
+  formEvent.preventDefault();
+  setEditTaskError("");
+
+  const title = editTaskTitle.trim();
+
+  if (!title) {
+    setEditTaskError("Please enter a task title.");
+    return;
+  }
+
+  setEditTaskSaving(true);
+
+  try {
+    const response = await fetch(
+      `/api/events/1/tasks/${taskId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          description: editTaskDescription.trim(),
+          dueDate: editTaskDueDate || null,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Could not update planning task");
+    }
+
+    const updatedTask = await response.json();
+
+    setTasks((currentTasks) =>
+      currentTasks.map((task) =>
+        task.id === taskId ? updatedTask : task
+      )
+    );
+
+    setEditingTaskId(null);
+    setEditTaskTitle("");
+    setEditTaskDescription("");
+    setEditTaskDueDate("");
+  } catch (error) {
+    console.error("Error editing planning task:", error);
+    setEditTaskError(
+      "Couldn't save the changes. Check that the backend is running and try again."
+    );
+  } finally {
+    setEditTaskSaving(false);
   }
 }
 
@@ -1114,36 +1176,116 @@ async function handleDeleteTask(taskId) {
               {tasks.length === 0 ? (
                 <p className="subtitle">No tasks yet. Add your first task above.</p>
               ) : (
-                tasks.map((task) => (
-                  <div className="task-row" key={task.id}>
-                    <input
-                      type="checkbox"
-                      checked={task.completed}
-                      aria-label={`Mark ${task.title} as completed`}
-                      onChange={() => toggleTask(task.id)}
-                    />
-
-                    <span
-                      className={`task-title ${
-                        task.completed ? "task-completed" : ""
-                      }`}
+                
+                tasks.map((task) =>
+                  editingTaskId === task.id ? (
+                    <form
+                      className="task-form edit-task-form"
+                      key={task.id}
+                      onSubmit={(formEvent) =>
+                        handleEditTaskSubmit(formEvent, task.id)
+                      }
                     >
-                      {task.title}
-                    </span>
+                      <label>
+                        Task title
+                        <input
+                          type="text"
+                          value={editTaskTitle}
+                          onChange={(e) => setEditTaskTitle(e.target.value)}
+                          required
+                        />
+                      </label>
 
-                    <span className="task-date">
-                      {task.dueDate ? formatDate(task.dueDate) : "No deadline"}
-                    </span>
+                      <label>
+                        Description
+                        <textarea
+                          value={editTaskDescription}
+                          onChange={(e) => setEditTaskDescription(e.target.value)}
+                          rows={3}
+                        />
+                      </label>
 
-                    <button
-                      type="button"
-                      className="task-delete-button"
-                      onClick={() => handleDeleteTask(task.id)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                ))
+                      <label>
+                        Due date
+                        <input
+                          type="date"
+                          value={editTaskDueDate}
+                          onChange={(e) => setEditTaskDueDate(e.target.value)}
+                        />
+                      </label>
+
+                      {editTaskError && (
+                        <p className="task-form-error" role="alert">
+                          {editTaskError}
+                        </p>
+                      )}
+
+                      <div className="edit-task-actions">
+                        <button
+                          className="task-submit-button"
+                          type="submit"
+                          disabled={editTaskSaving}
+                        >
+                          {editTaskSaving ? "Saving..." : "Save changes"}
+                        </button>
+
+                        <button
+                          className="task-delete-button"
+                          type="button"
+                          onClick={() => {
+                            setEditingTaskId(null);
+                            setEditTaskError("");
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="task-row" key={task.id}>
+                      <input
+                        type="checkbox"
+                        checked={task.completed}
+                        aria-label={`Mark ${task.title} as completed`}
+                        onChange={() => toggleTask(task.id)}
+                      />
+
+                      <span
+                        className={`task-title ${
+                          task.completed ? "task-completed" : ""
+                        }`}
+                      >
+                        {task.title}
+                      </span>
+
+                      <span className="task-date">
+                        {task.dueDate ? formatDate(task.dueDate) : "No deadline"}
+                      </span>
+
+                      <button
+                        type="button"
+                        className="task-delete-button"
+                        onClick={() => {
+                          setEditingTaskId(task.id);
+                          setEditTaskTitle(task.title);
+                          setEditTaskDescription(task.description ?? "");
+                          setEditTaskDueDate(task.dueDate ?? "");
+                          setEditTaskError("");
+                        }}
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        type="button"
+                        className="task-delete-button"
+                        onClick={() => handleDeleteTask(task.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )
+                )
               )}
 
               <div className="panel-footer">

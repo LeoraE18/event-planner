@@ -54,4 +54,15 @@ public class PlanningTaskController {
 
         planningTaskService.deleteTask(eventId, taskId);
     }
+
+
+    @PatchMapping("/{taskId}")
+    public PlanningTask updateTask(
+            @PathVariable Long eventId,
+            @PathVariable Long taskId,
+            @Valid @RequestBody PlanningTask updates) {
+
+        return planningTaskService.updateTask(
+                eventId, taskId, updates);
+    }
 }
