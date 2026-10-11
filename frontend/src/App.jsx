@@ -51,7 +51,9 @@ function App() {
   const [guestError, setGuestError] = useState("");
   const [guestSaving, setGuestSaving] = useState(false);
   const [budgetItems, setBudgetItems] = useState([]);
-  
+  const [actualCostDrafts, setActualCostDrafts] = useState({});
+  const [actualCostSavingId, setActualCostSavingId] = useState(null);
+  const [actualCostError, setActualCostError] = useState("");
   const [budgetName, setBudgetName] = useState("");
   const [budgetCategory, setBudgetCategory] = useState("");
   const [budgetEstimatedCost, setBudgetEstimatedCost] = useState("");
@@ -441,6 +443,64 @@ async function handleTaskSubmit(formEvent) {
     );
   } finally {
     setTaskSaving(false);
+  }
+}
+
+
+async function handleActualCostSubmit(formEvent, item) {
+  formEvent.preventDefault();
+  setActualCostError("");
+
+  const draft =
+    actualCostDrafts[item.id] ?? String(item.actualCost ?? 0);
+  const actualCost = Number(draft);
+
+  if (
+    draft.trim() === "" ||
+    !Number.isFinite(actualCost) ||
+    actualCost < 0
+  ) {
+    setActualCostError("Enter a valid, non-negative actual cost.");
+    return;
+  }
+
+  setActualCostSavingId(item.id);
+
+  try {
+    const response = await fetch(
+      `/api/events/1/budget/${item.id}/actual-cost`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ actualCost }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Could not update actual cost");
+    }
+
+    const updatedItem = await response.json();
+
+    setBudgetItems((currentItems) =>
+      currentItems.map((currentItem) =>
+        currentItem.id === item.id ? updatedItem : currentItem
+      )
+    );
+
+    setActualCostDrafts((currentDrafts) => ({
+      ...currentDrafts,
+      [item.id]: String(updatedItem.actualCost ?? actualCost),
+    }));
+  } catch (error) {
+    console.error("Error updating actual cost:", error);
+    setActualCostError(
+      "Couldn't save the actual cost. Check that the backend is running and try again."
+    );
+  } finally {
+    setActualCostSavingId(null);
   }
 }
 
@@ -892,24 +952,66 @@ async function handleTaskSubmit(formEvent) {
                 </button>
               </form>
 
+              
               {budgetItems.map((item) => (
                 <div className="budget-item-row" key={item.id}>
                   <div>
                     <strong>{item.name}</strong>
-                    <p>{item.category}</p>
+                    <p>{item.category || "Uncategorized"}</p>
                   </div>
+
                   <div className="budget-item-cost">
                     <strong>
-                      ${item.estimatedCost.toLocaleString("en-US")}
+                      ${Number(item.estimatedCost ?? 0).toLocaleString("en-US", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </strong>
                     <span>estimated</span>
                   </div>
+
+                  <form
+                    className="actual-cost-form"
+                    onSubmit={(formEvent) =>
+                      handleActualCostSubmit(formEvent, item)
+                    }
+                  >
+                    <label>
+                      Actual cost ($)
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={
+                          actualCostDrafts[item.id] ??
+                          String(item.actualCost ?? 0)
+                        }
+                        onChange={(e) =>
+                          setActualCostDrafts((currentDrafts) => ({
+                            ...currentDrafts,
+                            [item.id]: e.target.value,
+                          }))
+                        }
+                        required
+                      />
+                    </label>
+
+                    <button
+                      className="actual-cost-button"
+                      type="submit"
+                      disabled={actualCostSavingId === item.id}
+                    >
+                      {actualCostSavingId === item.id
+                        ? "Saving..."
+                        : "Save actual cost"}
+                    </button>
+                  </form>
                 </div>
               ))}
-            </article>
+              </article>
           </section>
         )}
-
+              ```
 
         {activePage === "Checklist" && (
           <section className="page-section">

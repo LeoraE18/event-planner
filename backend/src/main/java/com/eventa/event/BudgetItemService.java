@@ -50,4 +50,25 @@ public class BudgetItemService {
 
         return new BudgetSummary(totalEstimated, totalActual);
     }
+
+
+    public BudgetItem updateActualCost(
+            Long eventId, Long budgetItemId, BigDecimal actualCost) {
+
+        if (!eventRepository.existsById(eventId)) {
+            throw new EventNotFoundException("Event not found");
+        }
+
+        BudgetItem item = budgetItemRepository.findById(budgetItemId)
+                .filter(existingItem ->
+                        existingItem.getEvent() != null
+                        && existingItem.getEvent().getId().equals(eventId))
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Budget item not found for this event"));
+
+        item.setActualCost(actualCost);
+
+        return budgetItemRepository.save(item);
+    }
 }
