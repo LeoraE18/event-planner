@@ -2,6 +2,10 @@ EVENTA — Event Planning Application
 
 EVENTA is a full-stack event-planning application designed to help users organize events in one place. It combines event details, guest management, RSVP tracking, budget planning, and task management in a single web interface.
 
+## Application Preview
+
+![EVENTA event planning dashboard](screenshots/eventa-dashboard.png)
+
 Inspiration
 
 EVENTA was inspired by my experience planning my own wedding. I wanted a way to keep event details, guest lists, RSVPs, budgets, and planning tasks organized in one place instead of managing everything separately. That personal experience motivated me to build a full-stack application that makes event planning more organized, intuitive, and manageable.
