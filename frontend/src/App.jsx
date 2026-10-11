@@ -147,7 +147,13 @@ useEffect(() => {
 
   const completedTasks = tasks.filter((task) => task.completed).length;
   const totalAttendees = guests.reduce(
-    (total, guest) => total + (guest.partySize ?? 0),
+    (total, guest) => {
+      if (guest.rsvpStatus === "Declined") {
+        return total;
+      }
+
+      return total + (guest.partySize ?? 0);
+    },
     0
   );
 
@@ -348,6 +354,39 @@ async function handleGuestSubmit(formEvent) {
     );
   } finally {
     setGuestSaving(false);
+  }
+}
+
+
+async function handleGuestRsvpChange(guestId, rsvpStatus) {
+  try {
+    const response = await fetch(
+      `/api/events/1/guests/${guestId}/rsvp`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ rsvpStatus }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Could not update RSVP status");
+    }
+
+    const updatedGuest = await response.json();
+
+    setGuests((currentGuests) =>
+      currentGuests.map((guest) =>
+        guest.id === guestId
+          ? { ...guest, rsvpStatus: updatedGuest.rsvpStatus }
+          : guest
+      )
+    );
+  } catch (error) {
+    console.error("Error updating RSVP:", error);
+    alert("Couldn't update the RSVP. Please check that the backend is running and try again.");
   }
 }
 
@@ -682,9 +721,19 @@ async function handleGuestSubmit(formEvent) {
                       </p>
                     </div>
 
-                    <span className="status-pill">
-                      {guest.rsvpStatus}
-                    </span>
+
+                    <select
+                      className="rsvp-select"
+                      value={guest.rsvpStatus}
+                      onChange={(e) =>
+                        handleGuestRsvpChange(guest.id, e.target.value)
+                      }
+                      aria-label={`RSVP status for ${guest.name}`}
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Confirmed">Confirmed</option>
+                      <option value="Declined">Declined</option>
+                    </select>
                   </div>
                 ))
               )}
