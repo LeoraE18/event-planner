@@ -55,4 +55,20 @@ public class PlanningTaskService {
 
         return planningTaskRepository.save(task);
     }
+
+    public void deleteTask(Long eventId, Long taskId) {
+        if (!eventRepository.existsById(eventId)) {
+            throw new EventNotFoundException("Event not found");
+        }
+
+        PlanningTask task = planningTaskRepository.findById(taskId)
+                .filter(existingTask ->
+                        existingTask.getEvent() != null
+                        && existingTask.getEvent().getId().equals(eventId))
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Planning task not found for this event"));
+
+        planningTaskRepository.delete(task);
+    }
 }

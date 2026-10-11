@@ -1134,3 +1134,24 @@ h3 {
     padding: 15px;
   }
 }
+
+
+.task-delete-button {
+  flex-shrink: 0;
+  padding: 7px 10px;
+  border: 1px solid #eadce5;
+  border-radius: 8px;
+  background: #fff;
+  color: #9b5368;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.task-delete-button:hover {
+  border-color: #d8aaba;
+  background: #fcf3f6;
+}
+
+.task-row {
+  flex-wrap: wrap;
+}

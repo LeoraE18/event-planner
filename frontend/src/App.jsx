@@ -504,6 +504,37 @@ async function handleActualCostSubmit(formEvent, item) {
   }
 }
 
+
+async function handleDeleteTask(taskId) {
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this task?"
+  );
+
+  if (!confirmed) return;
+
+  setTaskError("");
+
+  try {
+    const response = await fetch(
+      `/api/events/1/tasks/${taskId}`,
+      { method: "DELETE" }
+    );
+
+    if (!response.ok) {
+      throw new Error("Could not delete planning task");
+    }
+
+    setTasks((currentTasks) =>
+      currentTasks.filter((task) => task.id !== taskId)
+    );
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    setTaskError(
+      "Couldn't delete the task. Check that the backend is running and try again."
+    );
+  }
+}
+
   const navigation = [
     { name: "Overview", icon: "⌂" },
     { name: "Guests", icon: "♧" },
@@ -1079,14 +1110,16 @@ async function handleActualCostSubmit(formEvent, item) {
                 </span>
               </div>
 
+              
               {tasks.length === 0 ? (
                 <p className="subtitle">No tasks yet. Add your first task above.</p>
               ) : (
                 tasks.map((task) => (
-                  <label className="task-row" key={task.id}>
+                  <div className="task-row" key={task.id}>
                     <input
                       type="checkbox"
                       checked={task.completed}
+                      aria-label={`Mark ${task.title} as completed`}
                       onChange={() => toggleTask(task.id)}
                     />
 
@@ -1099,11 +1132,17 @@ async function handleActualCostSubmit(formEvent, item) {
                     </span>
 
                     <span className="task-date">
-                      {task.dueDate
-                        ? formatDate(task.dueDate)
-                        : "No deadline"}
+                      {task.dueDate ? formatDate(task.dueDate) : "No deadline"}
                     </span>
-                  </label>
+
+                    <button
+                      type="button"
+                      className="task-delete-button"
+                      onClick={() => handleDeleteTask(task.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 ))
               )}
 

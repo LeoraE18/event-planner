@@ -46,4 +46,12 @@ public class PlanningTaskController {
         return planningTaskService.updateTaskCompletion(
                 eventId, taskId, completed);
     }
+
+    @DeleteMapping("/{taskId}")
+    public void deleteTask(
+            @PathVariable Long eventId,
+            @PathVariable Long taskId) {
+
+        planningTaskService.deleteTask(eventId, taskId);
+    }
 }
