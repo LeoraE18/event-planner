@@ -37,6 +37,12 @@ function formatLongDate(dateString) {
 function App() {
   const [activePage, setActivePage] = useState("Overview");
   const [tasks, setTasks] = useState([]);
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDescription, setTaskDescription] = useState("");
+  const [taskDueDate, setTaskDueDate] = useState("");
+  const [taskError, setTaskError] = useState("");
+  const [taskSaving, setTaskSaving] = useState(false);
+
   const [guests, setGuests] = useState([]);
   const [guestName, setGuestName] = useState("");
   const [guestRsvpStatus, setGuestRsvpStatus] = useState("Pending");
@@ -387,6 +393,54 @@ async function handleGuestRsvpChange(guestId, rsvpStatus) {
   } catch (error) {
     console.error("Error updating RSVP:", error);
     alert("Couldn't update the RSVP. Please check that the backend is running and try again.");
+  }
+}
+
+
+async function handleTaskSubmit(formEvent) {
+  formEvent.preventDefault();
+  setTaskError("");
+
+  const title = taskTitle.trim();
+
+  if (!title) {
+    setTaskError("Please enter a task title.");
+    return;
+  }
+
+  setTaskSaving(true);
+
+  try {
+    const response = await fetch("/api/events/1/tasks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title,
+        description: taskDescription.trim(),
+        dueDate: taskDueDate || null,
+        completed: false,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Could not save planning task");
+    }
+
+    const savedTask = await response.json();
+
+    setTasks((currentTasks) => [...currentTasks, savedTask]);
+    setTaskTitle("");
+    setTaskDescription("");
+    setTaskDueDate("");
+  } catch (error) {
+    console.error("Error saving planning task:", error);
+    setTaskError(
+      "Couldn't save the task. Check that the backend is running and try again."
+    );
+  } finally {
+    setTaskSaving(false);
   }
 }
 
@@ -856,6 +910,7 @@ async function handleGuestRsvpChange(guestId, rsvpStatus) {
           </section>
         )}
 
+
         {activePage === "Checklist" && (
           <section className="page-section">
             <p className="eyebrow">ONE STEP AT A TIME</p>
@@ -863,26 +918,93 @@ async function handleGuestRsvpChange(guestId, rsvpStatus) {
             <p className="subtitle">
               Your tasks and deadlines, all together.
             </p>
+
             <article className="panel page-panel">
-              {tasks.map((task) => (
-                <label className="task-row" key={task.id}>
+              <div className="panel-heading">
+                <h3>Add a planning task</h3>
+              </div>
+
+              <form className="task-form" onSubmit={handleTaskSubmit}>
+                <label>
+                  Task title
                   <input
-                    type="checkbox"
-                    checked={task.completed}
-                    onChange={() => toggleTask(task.id)}
+                    type="text"
+                    value={taskTitle}
+                    onChange={(e) => setTaskTitle(e.target.value)}
+                    placeholder="e.g. Book the photographer"
+                    required
                   />
-                  <span
-                    className={`task-title ${
-                      task.completed ? "task-completed" : ""
-                    }`}
-                  >
-                    {task.title}
-                  </span>
-                  <span className="task-date">
-                    {formatDate(task.dueDate)}
-                  </span>
                 </label>
-              ))}
+
+                <label>
+                  Description
+                  <textarea
+                    value={taskDescription}
+                    onChange={(e) => setTaskDescription(e.target.value)}
+                    placeholder="Add details or next steps"
+                    rows={3}
+                  />
+                </label>
+
+                <label>
+                  Due date
+                  <input
+                    type="date"
+                    value={taskDueDate}
+                    onChange={(e) => setTaskDueDate(e.target.value)}
+                  />
+                </label>
+
+                {taskError && (
+                  <p className="task-form-error" role="alert">
+                    {taskError}
+                  </p>
+                )}
+
+                <button
+                  className="task-submit-button"
+                  type="submit"
+                  disabled={taskSaving}
+                >
+                  {taskSaving ? "Saving..." : "+ Add task"}
+                </button>
+              </form>
+
+              <div className="panel-heading">
+                <h3>Your tasks</h3>
+                <span className="stat-label">
+                  {tasks.length} TASKS
+                </span>
+              </div>
+
+              {tasks.length === 0 ? (
+                <p className="subtitle">No tasks yet. Add your first task above.</p>
+              ) : (
+                tasks.map((task) => (
+                  <label className="task-row" key={task.id}>
+                    <input
+                      type="checkbox"
+                      checked={task.completed}
+                      onChange={() => toggleTask(task.id)}
+                    />
+
+                    <span
+                      className={`task-title ${
+                        task.completed ? "task-completed" : ""
+                      }`}
+                    >
+                      {task.title}
+                    </span>
+
+                    <span className="task-date">
+                      {task.dueDate
+                        ? formatDate(task.dueDate)
+                        : "No deadline"}
+                    </span>
+                  </label>
+                ))
+              )}
+
               <div className="panel-footer">
                 {completedTasks} of {tasks.length} tasks completed
               </div>
